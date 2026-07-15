@@ -111,6 +111,22 @@ def _detect_plateaus_np(rsl: np.ndarray, time_span: int = 3, max_thld: float = -
     return ~bad
 
 
+def detect_plateaus(series: xr.DataArray, time_span: int = 3, max_thld: float = -85,
+                    std_thld: float = 0.5, pad: int = 5) -> xr.DataArray:
+    """Compatibility wrapper matching the original xarray notebook helper name."""
+    template = series.transpose("time", ... ) if "time" in series.dims else series
+    values = np.apply_along_axis(
+        _detect_plateaus_np,
+        template.get_axis_num("time"),
+        template.values,
+        time_span,
+        max_thld,
+        std_thld,
+        pad,
+    )
+    return xr.DataArray(values, coords=template.coords, dims=template.dims).transpose(*series.dims)
+
+
 def _blackout_mask_1d(rsl: np.ndarray, rsl_threshold: float = -65,
                       max_gap_length: int = 60) -> np.ndarray:
     rsl = np.asarray(rsl, dtype=np.float32)
@@ -164,6 +180,23 @@ def _temporal_pass_np(trsl: np.ndarray, tspan: int, thld: float, perc: float) ->
     low = rs[good] <= thld
     denom = int(high.sum() + low.sum())
     return bool(denom > 0 and (high.sum() / denom) <= perc)
+
+
+def temporal_sanity_check(trsl: xr.DataArray, tspan: int, thld: float, perc: float) -> xr.DataArray:
+    """Compatibility wrapper for the original Graf temporal sanity helper."""
+    other_dims = [dim for dim in trsl.dims if dim != "time"]
+    stacked = trsl.stack(_series=other_dims) if other_dims else trsl.expand_dims(_series=[0])
+    stacked = stacked.transpose("_series", "time")
+    vals = [_temporal_pass_np(row, tspan, thld, perc) for row in stacked.values]
+    out = xr.DataArray(np.asarray(vals, dtype=bool), coords={"_series": stacked._series}, dims=("_series",))
+    if other_dims:
+        return out.unstack("_series").transpose(*other_dims)
+    return out.isel(_series=0, drop=True)
+
+
+def availability_check(trsl: xr.DataArray, perc_thld: float = 0.5) -> xr.DataArray:
+    """Compatibility wrapper for the original availability helper."""
+    return (trsl.isnull().sum("time") / trsl.sizes["time"]) < perc_thld
 
 
 def _fallback_a(freq_ghz: np.ndarray) -> np.ndarray:
