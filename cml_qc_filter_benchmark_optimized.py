@@ -3,7 +3,7 @@
 
 Run from a shell with every continuation backslash at the *end* of a line::
 
-    python cml_real_pipeline_package/cml_qc_filter_optimized.py \
+    python cml_real_pipeline_package/cml_qc_filter_benchmark_optimized.py \
       --cml-nc CML_S2020E2021_1MIN_CZ.nc \
       --out-nc CML_S2020E2021_1MIN_CZ_QC.nc \
       --proc-line full \
@@ -13,7 +13,7 @@ Run from a shell with every continuation backslash at the *end* of a line::
 
 For a quick runtime estimate first::
 
-    python cml_real_pipeline_package/cml_qc_filter_optimized.py \
+    python cml_real_pipeline_package/cml_qc_filter_benchmark_optimized.py \
       --cml-nc CML_S2020E2021_1MIN_CZ.nc \
       --out-nc CML_S2020E2021_1MIN_CZ_QC.nc \
       --proc-line full \
