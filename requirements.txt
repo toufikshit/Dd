@@ -2,4 +2,3 @@ numpy
 netCDF4
 pyproj
 tqdm
-xarray
